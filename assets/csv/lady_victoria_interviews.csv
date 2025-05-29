@@ -1,0 +1,5 @@
+﻿Column1,Column2,Column3,Column4,Column5
+id,question,response,requires_evidence,requires_interview
+business_troubles,About William's business difficulties,"""William was always discreet about business matters, but yes, I knew something was troubling him. He hadn't been sleeping well for days. I suggested he speak with Dr. Harlow about it, but he insisted it would pass once a certain transaction was completed. I fear now it never will.""",,
+will_changes,About changes to the will,"""Yes, William informed me of the adjustments. He was concerned about James's drinking habits and wanted to ensure the estate would be properly managed. The changes regarding Dr. Harlow were recent—William was concerned about the direction of Thomas's research. He said he could no longer justify the expense given our financial situation.""",will,
+chamomile_tea,About the chamomile tea,"""Yes, I did. William has been so tense lately, I thought it might help him relax. He usually takes his heart medication in the evening, and I know he prefers to have something warm to swallow the pills with rather than plain water. Mrs. Reynolds knows how to prepare it just as he likes.""",,
