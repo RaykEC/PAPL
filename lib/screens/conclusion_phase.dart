@@ -254,9 +254,9 @@ class _ConclusionPhaseState extends State<ConclusionPhase> {
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  Text(
+                                  const Text(
                                     'Based on the evidence you\'ve collected, the following conclusions are possible:',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
                                     ),

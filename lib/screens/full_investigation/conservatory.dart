@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/game_state.dart';
 import '../../widgets/game_top_bar.dart';
+import '../../widgets/character_interview_widget.dart';
 
 class ConservatoryScreen extends StatefulWidget {
   const ConservatoryScreen({super.key});
@@ -11,7 +12,6 @@ class ConservatoryScreen extends StatefulWidget {
 }
 
 class _ConservatoryScreenState extends State<ConservatoryScreen> {
-  bool _interviewedLadyVictoria = false;
   
   @override
   void initState() {
@@ -23,6 +23,8 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+    final hasInterviewedLadyVictoria = gameState.characterInterviewed['Lady Victoria'] ?? false;
     
     return Scaffold(
       body: Stack(
@@ -139,7 +141,7 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
                             ],
                           ),
                         ),
-                        if (_interviewedLadyVictoria)
+                        if (hasInterviewedLadyVictoria)
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
@@ -174,14 +176,18 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Interview Lady Victoria option
+                          // Interview Lady Victoria option - Now always available
                           _buildInvestigationOption(
-                            'Interview Lady Victoria',
-                            'Question Lord William\'s wife about the events',
-                            Icons.chat,
+                            hasInterviewedLadyVictoria 
+                                ? 'Re-interview Lady Victoria'
+                                : 'Interview Lady Victoria',
+                            hasInterviewedLadyVictoria
+                                ? 'Review previous responses or ask additional questions'
+                                : 'Question Lord William\'s wife about the events',
+                            hasInterviewedLadyVictoria ? Icons.refresh : Icons.chat,
                             Colors.purple[700]!,
-                            _interviewedLadyVictoria,
-                            !_interviewedLadyVictoria,
+                            hasInterviewedLadyVictoria,
+                            true, // Always enabled now
                             () => _interviewLadyVictoria(),
                           ),
                         ],
@@ -292,7 +298,7 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    completed ? '$description (Completed)' : description,
+                    description,
                     style: TextStyle(
                       fontSize: 14,
                       color: enabled || completed ? Colors.white70 : Colors.grey.withOpacity(0.7),
@@ -301,12 +307,11 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
                 ],
               ),
             ),
-            if (enabled && !completed)
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white54,
-                size: 16,
-              ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white54,
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -314,150 +319,18 @@ class _ConservatoryScreenState extends State<ConservatoryScreen> {
   }
   
   void _interviewLadyVictoria() {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    
-    setState(() {
-      _interviewedLadyVictoria = true;
-    });
-    
-    gameState.interviewCharacter('Lady Victoria');
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.blueGrey[900],
-          title: Row(
-            children: [
-              Icon(Icons.person, color: Colors.purple[300], size: 24),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Lady Victoria Thornfield Interview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.purple[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.purple[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    'Lady Victoria turns as you approach, her composure maintained despite the late hour and tragic circumstances.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 1: Business difficulties
-                const Text(
-                  'About William\'s business difficulties:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"William was always discreet about business matters, but yes, I knew something was troubling him. He hadn\'t been sleeping well for days. I suggested he speak with Dr. Harlow about it, but he insisted it would pass once a certain transaction was completed. I fear now it never will."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 2: Changes to will (conditional)
-                if (gameState.evidenceList[3]) ...[
-                  const Text(
-                    'About changes to William\'s will:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '"Yes, William informed me of the adjustments. He was concerned about James\'s drinking habits and wanted to ensure the estate would be properly managed. The changes regarding Dr. Harlow were recent—William was concerned about the direction of Thomas\'s research. He said he could no longer justify the expense given our financial situation."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
-                // Question 3: Chamomile tea
-                const Text(
-                  'About the chamomile tea:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"Yes, I did request it. William has been so tense lately, I thought it might help him relax. He usually takes his heart medication in the evening, and I know he prefers to have something warm to swallow the pills with rather than plain water. Mrs. Reynolds knows how to prepare it just as he likes."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.purple[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.purple[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    '"Please find whoever did this to William, Detective. Despite what some might think of our marriage, I... cared for him deeply."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Thank you for your time',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
+        return CharacterInterviewWidget(
+          characterKey: 'Lady Victoria',
+          characterDisplayName: 'Lady Victoria Thornfield',
+          characterImagePath: 'assets/images/characters/lady_victoria.jpg',
+          characterIntro: 'Lady Victoria turns as you approach, her composure maintained despite the late hour and tragic circumstances.',
+          onInterviewComplete: () {
+            setState(() {}); // Refresh the UI
+          },
         );
       },
     );

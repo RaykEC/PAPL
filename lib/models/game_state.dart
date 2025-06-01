@@ -4,25 +4,23 @@ import 'package:flutter/foundation.dart';
 class GameState extends ChangeNotifier {
   // Basic game state variables
   int evidenceCount = 0;
-  List<bool> evidenceList = [false, false, false, false, false, false]; // Index 0 is unused
-  List<bool> locationVisited = [false, false, false, false, false, false]; // Index 0 is unused
+  List<bool> evidenceList = [false, false, false, false, false, false]; 
+  List<bool> locationVisited = [false, false, false, false, false, false]; 
   Map<String, bool> characterInterviewed = {
     'Lady Victoria': false,
     'James': false,
     'Dr. Harlow': false,
     'Mrs. Reynolds': false,
-    'Inspector': false,
   };
   
   bool reynoldsInterviewComplete = false;
   bool keyFound = false;
   String investigationPhase = 'Initial';
-  int gameTime = 0;
   String currentLocation = '';
   
   // Evidence names for reference
   static const evidenceNames = [
-    '', // Index 0 unused
+    '', 
     'Heart Medication Bottle',
     'Tea Cup with Residue', 
     'Modified Will Document',
@@ -53,12 +51,6 @@ class GameState extends ChangeNotifier {
       characterInterviewed[character] = true;
       notifyListeners();
     }
-  }
-  
-  // Game progression methods
-  void advanceTime() {
-    gameTime++;
-    notifyListeners();
   }
   
   void setInvestigationPhase(String phase) {
@@ -126,12 +118,10 @@ class GameState extends ChangeNotifier {
       'James': false,
       'Dr. Harlow': false,
       'Mrs. Reynolds': false,
-      'Inspector': false,
     };
     reynoldsInterviewComplete = false;
     keyFound = false;
     investigationPhase = 'Initial';
-    gameTime = 0;
     currentLocation = '';
     notifyListeners();
   }

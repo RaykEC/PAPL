@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/game_state.dart';
 import '../../widgets/game_top_bar.dart';
+import '../../widgets/character_interview_widget.dart';
 
 class SmokingRoomScreen extends StatefulWidget {
   const SmokingRoomScreen({super.key});
@@ -11,7 +12,6 @@ class SmokingRoomScreen extends StatefulWidget {
 }
 
 class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
-  bool _interviewedJames = false;
   
   @override
   void initState() {
@@ -23,6 +23,8 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+    final hasInterviewedJames = gameState.characterInterviewed['James'] ?? false;
     
     return Scaffold(
       body: Stack(
@@ -139,7 +141,7 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
                             ],
                           ),
                         ),
-                        if (_interviewedJames)
+                        if (hasInterviewedJames)
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
@@ -174,14 +176,18 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Interview James option
+                          // Interview James option - Now always available
                           _buildInvestigationOption(
-                            'Interview James Thornfield',
-                            'Question Lord William\'s brother about the inheritance',
-                            Icons.chat,
+                            hasInterviewedJames 
+                                ? 'Re-interview James Thornfield'
+                                : 'Interview James Thornfield',
+                            hasInterviewedJames
+                                ? 'Review previous responses or ask additional questions'
+                                : 'Question Lord William\'s brother about the inheritance',
+                            hasInterviewedJames ? Icons.refresh : Icons.chat,
                             Colors.orange[700]!,
-                            _interviewedJames,
-                            !_interviewedJames,
+                            hasInterviewedJames,
+                            true, // Always enabled now
                             () => _interviewJames(),
                           ),
                         ],
@@ -292,7 +298,7 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    completed ? '$description (Completed)' : description,
+                    description,
                     style: TextStyle(
                       fontSize: 14,
                       color: enabled || completed ? Colors.white70 : Colors.grey.withOpacity(0.7),
@@ -301,12 +307,11 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
                 ],
               ),
             ),
-            if (enabled && !completed)
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white54,
-                size: 16,
-              ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white54,
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -314,170 +319,18 @@ class _SmokingRoomScreenState extends State<SmokingRoomScreen> {
   }
   
   void _interviewJames() {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    
-    setState(() {
-      _interviewedJames = true;
-    });
-    
-    gameState.interviewCharacter('James');
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.blueGrey[900],
-          title: Row(
-            children: [
-              Icon(Icons.person, color: Colors.orange[300], size: 24),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'James Thornfield Interview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    'James turns to face you, his expression a mixture of grief and defiance. His eyes are bloodshot and his movements slightly unsteady.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 1: Disinheritance (conditional)
-                if (gameState.evidenceList[3]) ...[
-                  const Text(
-                    'About being removed from William\'s will:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '"So you found that, did you? Yes, William decided I wasn\'t worthy of the family legacy. Called me in last week to tell me face to face—at least he granted me that courtesy. I was angry, I won\'t deny it. We argued. But I wouldn\'t kill my own brother over money, Detective."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
-                // Question 2: Whereabouts during storm
-                const Text(
-                  'About his whereabouts during the storm:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"In my room reading until about eleven. Then I stepped out for a cigarette on the covered terrace. The rain had slightly lessened. I... I may have walked past William\'s study. His door was closed. I heard him coughing inside but didn\'t disturb him."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 3: Entering study (conditional)
-                if (gameState.reynoldsInterviewComplete) ...[
-                  const Text(
-                    'About entering William\'s study:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '"The housekeeper told you, did she? Yes, I went to speak with William. I was... intoxicated, I admit. I wanted to appeal to him one last time about the will. We argued, but he was alive when I left, Detective. On my honor, he was alive. He was drinking that blasted tea and sorting through papers. Said he had important work to finish and asked me to leave. That was around midnight."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800]!.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[500]!.withOpacity(0.5)),
-                    ),
-                    child: const Text(
-                      'James seems hesitant to reveal more about his movements that night. Perhaps someone else can corroborate his story...',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    '"Find who did this, Detective. Despite our differences, he was my brother."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Thank you for your honesty',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
+        return CharacterInterviewWidget(
+          characterKey: 'James',
+          characterDisplayName: 'James Thornfield',
+          characterImagePath: 'assets/images/characters/james.jpg',
+          characterIntro: 'James turns to face you, his expression a mixture of grief and defiance. His eyes are bloodshot and his movements slightly unsteady.',
+          onInterviewComplete: () {
+            setState(() {}); // Refresh the UI
+          },
         );
       },
     );

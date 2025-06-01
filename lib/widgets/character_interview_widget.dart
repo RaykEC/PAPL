@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/game_state.dart';
 import '../../services/interview_service.dart';
 
-// Generic character interview widget that uses the CSV data
+// Generic character interview widget that uses ONLY CSV data
 class CharacterInterviewWidget extends StatelessWidget {
   final String characterKey; // Key used for interview service lookup
   final String characterDisplayName; // Display name for UI
@@ -25,32 +25,31 @@ class CharacterInterviewWidget extends StatelessWidget {
     final gameState = Provider.of<GameState>(context);
     final interviewService = Provider.of<InterviewService>(context, listen: false);
 
+    // Check if this is a repeat interview
+    final bool isRepeatInterview = gameState.characterInterviewed[characterKey] ?? false;
+
+    // Check if CSV files loaded successfully
+    if (!interviewService.isLoaded) {
+      return _buildErrorDialog(context, 
+        'CSV Files Not Loaded',
+        'Interview data could not be loaded from CSV files.\n\nError: ${interviewService.loadError ?? "Unknown error"}\n\nPlease check that all CSV files are present and properly formatted.'
+      );
+    }
+
     // Get character interview data
     final characterInterviews = interviewService.getCharacterInterviews(characterKey);
     
     if (characterInterviews == null) {
-      return AlertDialog(
-        backgroundColor: Colors.blueGrey[900],
-        title: const Text(
-          'Interview Data Not Found',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Unable to load interview data for $characterDisplayName. Please try again later.',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onInterviewComplete();
-            },
-            child: const Text(
-              'Close',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+      return _buildErrorDialog(context,
+        'Character Data Not Found',
+        'No interview data found for $characterDisplayName.\n\nPlease check that the CSV file for this character exists and is properly formatted.'
+      );
+    }
+
+    if (characterInterviews.questions.isEmpty) {
+      return _buildErrorDialog(context,
+        'No Interview Questions',
+        'No valid interview questions found for $characterDisplayName.\n\nPlease check the CSV file format and content.'
       );
     }
 
@@ -58,7 +57,7 @@ class CharacterInterviewWidget extends StatelessWidget {
     gameState.interviewCharacter(characterKey);
 
     // Special case for Mrs. Reynolds to unlock James's third question
-    if (characterKey == 'mrs_reynolds') {
+    if (characterKey == 'Mrs. Reynolds') {
       gameState.completeReynoldsInterview();
     }
 
@@ -105,7 +104,9 @@ class CharacterInterviewWidget extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Interview with $characterDisplayName',
+                      isRepeatInterview 
+                          ? 'Re-interviewing $characterDisplayName'
+                          : 'Interview with $characterDisplayName',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -113,6 +114,41 @@ class CharacterInterviewWidget extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Repeat interview indicator
+                  if (isRepeatInterview)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[700],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'REPEAT',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  // CSV indicator
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green[700],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'CSV',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   IconButton(
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -133,6 +169,40 @@ class CharacterInterviewWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
+                    // Repeat interview notice
+                    if (isRepeatInterview)
+                      Container(
+                        padding: const EdgeInsets.all(15),
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[900]?.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.refresh,
+                              color: Colors.orange[300],
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'You are re-interviewing $characterDisplayName. You can review their previous responses.',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Character image
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
@@ -170,7 +240,9 @@ class CharacterInterviewWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        characterIntro,
+                        isRepeatInterview 
+                            ? '$characterIntro\n\n"We\'ve spoken before, Detective. What else would you like to know?"'
+                            : characterIntro,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -183,7 +255,7 @@ class CharacterInterviewWidget extends StatelessWidget {
 
                     const SizedBox(height: 25),
 
-                    // Interview questions
+                    // Interview questions from CSV
                     ...characterInterviews.questions.map((question) {
                       bool isAvailable = question.isAvailable(gameState);
                       
@@ -207,13 +279,15 @@ class CharacterInterviewWidget extends StatelessWidget {
                               dividerColor: Colors.transparent,
                             ),
                             child: ExpansionTile(
+                              // Auto-expand questions on repeat interviews
+                              initiallyExpanded: isRepeatInterview && isAvailable,
                               tilePadding: const EdgeInsets.symmetric(
                                 horizontal: 15,
                                 vertical: 5,
                               ),
                               childrenPadding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
                               title: Text(
-                                question.question + _getRequirementString(question, gameState),
+                                '${question.question}${_getRequirementString(question, gameState)}',
                                 style: TextStyle(
                                   color: isAvailable ? Colors.white : Colors.grey[500],
                                   fontSize: 16,
@@ -247,13 +321,14 @@ class CharacterInterviewWidget extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        // Response text
+                                        // Response text from CSV
                                         Text(
-                                          question.response,
+                                          '"${question.response}"',
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
                                             height: 1.6,
+                                            fontStyle: FontStyle.italic,
                                           ),
                                         ),
                                       ],
@@ -272,25 +347,32 @@ class CharacterInterviewWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: Colors.green[800]?.withOpacity(0.3),
+                        color: isRepeatInterview 
+                            ? Colors.orange[800]?.withOpacity(0.3)
+                            : Colors.green[800]?.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: Colors.green.withOpacity(0.5),
+                          color: isRepeatInterview 
+                              ? Colors.orange.withOpacity(0.5)
+                              : Colors.green.withOpacity(0.5),
                           width: 1,
                         ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.check_circle_outline,
-                            color: Colors.green,
+                          Icon(
+                            isRepeatInterview 
+                                ? Icons.refresh
+                                : Icons.check_circle_outline,
+                            color: isRepeatInterview ? Colors.orange : Colors.green,
                             size: 24,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Interview with $characterDisplayName completed. '
-                              'You may now continue your investigation.',
+                              isRepeatInterview
+                                  ? 'You have reviewed the interview with $characterDisplayName. You can revisit this interview anytime.'
+                                  : 'Interview with $characterDisplayName completed. You may now continue your investigation.',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -341,6 +423,41 @@ class CharacterInterviewWidget extends StatelessWidget {
     );
   }
 
+  // Build error dialog for CSV loading issues
+  Widget _buildErrorDialog(BuildContext context, String title, String message) {
+    return AlertDialog(
+      backgroundColor: Colors.red[900],
+      title: Row(
+        children: [
+          const Icon(Icons.error, color: Colors.white, size: 24),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white70),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            onInterviewComplete();
+          },
+          child: const Text(
+            'Close',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
   // Generate requirement string to display next to unavailable questions
   String _getRequirementString(InterviewQuestion question, GameState gameState) {
     if (question.requiresEvidence == 'will' && !gameState.evidenceList[3]) {
@@ -385,7 +502,7 @@ class CharacterInterviewWidget extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                message,
+                message,  
                 style: const TextStyle(color: Colors.white),
               ),
             ),

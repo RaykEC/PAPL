@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/game_state.dart';
 import '../../widgets/game_top_bar.dart';
+import '../../widgets/character_interview_widget.dart';
 
 class KitchenScreen extends StatefulWidget {
   const KitchenScreen({super.key});
@@ -11,7 +12,6 @@ class KitchenScreen extends StatefulWidget {
 }
 
 class _KitchenScreenState extends State<KitchenScreen> {
-  bool _interviewedMrsReynolds = false;
   bool _searchedTeaCabinet = false;
   bool _foundTeaCanister = false;
   
@@ -21,10 +21,16 @@ class _KitchenScreenState extends State<KitchenScreen> {
     final gameState = Provider.of<GameState>(context, listen: false);
     gameState.visitLocation(2);
     gameState.setCurrentLocation('Kitchen');
+    
+    // Check if evidence has been found
+    _foundTeaCanister = gameState.evidenceList[5];
   }
   
   @override
   Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+    final hasInterviewedMrsReynolds = gameState.characterInterviewed['Mrs. Reynolds'] ?? false;
+    _foundTeaCanister = gameState.evidenceList[5];
     
     return Scaffold(
       body: Stack(
@@ -145,14 +151,18 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Interview Mrs. Reynolds option
+                          // Interview Mrs. Reynolds option - Now always available
                           _buildInvestigationOption(
-                            'Interview Mrs. Reynolds',
-                            'Question the housekeeper about the tea preparation',
-                            Icons.person,
+                            hasInterviewedMrsReynolds 
+                                ? 'Re-interview Mrs. Reynolds'
+                                : 'Interview Mrs. Reynolds',
+                            hasInterviewedMrsReynolds
+                                ? 'Review previous responses or ask additional questions'
+                                : 'Question the housekeeper about the tea preparation',
+                            hasInterviewedMrsReynolds ? Icons.refresh : Icons.person,
                             Colors.brown[700]!,
-                            _interviewedMrsReynolds,
-                            !_interviewedMrsReynolds,
+                            hasInterviewedMrsReynolds,
+                            true, // Always enabled now
                             () => _interviewMrsReynolds(),
                           ),
                           
@@ -276,7 +286,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    completed ? '$description (Completed)' : description,
+                    description,
                     style: TextStyle(
                       fontSize: 14,
                       color: enabled || completed ? Colors.white70 : Colors.grey.withOpacity(0.7),
@@ -298,124 +308,18 @@ class _KitchenScreenState extends State<KitchenScreen> {
   }
   
   void _interviewMrsReynolds() {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    
-    setState(() {
-      _interviewedMrsReynolds = true;
-    });
-    
-    gameState.interviewCharacter('Mrs. Reynolds');
-    gameState.completeReynoldsInterview();
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.blueGrey[900],
-          title: Row(
-            children: [
-              Icon(Icons.person, color: Colors.brown[300], size: 24),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Mrs. Reynolds Interview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.brown[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.brown[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    'Mrs. Reynolds looks up as you enter, her eyes red-rimmed from crying.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'About finding Lord William\'s body:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"I couldn\'t sleep with the storm, so I thought I\'d check if Lord William needed anything. He often works late into the night. When I approached his study, I noticed the door was slightly ajar, which was unusual—he always closes it when working. I found him on the floor, clutching his chest. I tried to help him, but... it was too late. That\'s when I screamed."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'About the tea served to Lord William:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"Yes, I prepared chamomile tea as Lady Victoria suggested—said it might help him sleep better. I prepared it myself using our kitchen supply. Left it on his desk while he was reviewing some papers, around nine o\'clock. The tea was a gift from Dr. Thomas to Lady Victoria. She\'s had it for quite a while and says it tastes wonderful and helps her sleep. Now that I think about it, it was Dr. Thomas who specifically advised me to brew chamomile tea instead of the usual coffee Lord William preferred at night. Said it would be better for his health."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'About visitors to Lord William\'s study:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"I... I did see Mr. James enter the study late last night. He\'d been drinking heavily and seemed agitated. I heard raised voices shortly after—they were arguing about the inheritance, I believe. I didn\'t want to eavesdrop, so I continued with my duties. I didn\'t mention it earlier because... well, without any evidence, I feared it would seem like I was accusing Mr. James unfairly. The family has always been good to me."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Thank you for your honesty',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
+        return CharacterInterviewWidget(
+          characterKey: 'Mrs. Reynolds',
+          characterDisplayName: 'Mrs. Reynolds',
+          characterImagePath: 'assets/images/characters/mrs_reynolds.jpg',
+          characterIntro: 'Mrs. Reynolds looks up as you enter, her eyes red-rimmed from crying.',
+          onInterviewComplete: () {
+            setState(() {}); // Refresh the UI
+          },
         );
       },
     );

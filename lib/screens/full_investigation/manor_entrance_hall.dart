@@ -15,6 +15,9 @@ class ManorEntranceHall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
     
     return Scaffold(
       body: Stack(
@@ -43,226 +46,228 @@ class ManorEntranceHall extends StatelessWidget {
             },
           ),
           
-          // Top bar
-          const GameTopBar(
-            locationName: 'Manor Entrance Hall',
-          ),
-          
-          // Main content
-          Positioned(
-            top: 100,
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.75),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  const Text(
-                    'Investigation Hub',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Description
-                  const Text(
-                    'The grand entrance hall serves as the heart of Thornfield Manor. From here, you can access all areas of the house to continue your investigation. The storm continues to rage outside, ensuring no one can leave.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      height: 1.5,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Investigation status
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[900]!.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue[300]!.withOpacity(0.5)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.assignment, color: Colors.blue[300], size: 20),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Investigation Progress',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Text(
-                              'Evidence Found: ${gameState.evidenceCount}/5',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              'Interviews: ${gameState.characterInterviewed.values.where((interviewed) => interviewed).length}/4',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (gameState.evidenceCount > 0) ...[
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Collected Evidence:',
+          // Main content using responsive layout
+          SafeArea(
+            child: Column(
+              children: [
+                // Top bar
+                const GameTopBar(
+                  locationName: 'Manor Entrance Hall',
+                ),
+                
+                // Main scrollable content area
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(screenWidth * 0.04),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.75),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title
+                          Text(
+                            'Investigation Hub',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white70,
+                              fontSize: screenWidth * 0.065,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          ...gameState.getCollectedEvidence().map((evidence) => Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 2),
-                            child: Text(
-                              '• $evidence',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white60,
+                          
+                          SizedBox(height: screenHeight * 0.015),
+                          
+                          // Compact description
+                          Text(
+                            'From the manor\'s entrance hall, access all investigation areas. The storm ensures no one can leave.',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.035,
+                              color: Colors.white,
+                              height: 1.3,
+                            ),
+                          ),
+                          
+                          SizedBox(height: screenHeight * 0.02),
+                          
+                          // Compact investigation status
+                          Container(
+                            padding: EdgeInsets.all(screenWidth * 0.03),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[900]!.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue[300]!.withOpacity(0.5)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.assignment, color: Colors.blue[300], size: screenWidth * 0.045),
+                                    SizedBox(width: screenWidth * 0.02),
+                                    Text(
+                                      'Progress',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: screenHeight * 0.01),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Evidence: ${gameState.evidenceCount}/5',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.035,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      'Interviews: ${gameState.characterInterviewed.values.where((interviewed) => interviewed).length}/4',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.035,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (gameState.evidenceCount > 0) ...[
+                                  SizedBox(height: screenHeight * 0.008),
+                                  Text(
+                                    'Evidence: ${gameState.getCollectedEvidence().join(", ")}',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.03,
+                                      color: Colors.white60,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          
+                          SizedBox(height: screenHeight * 0.025),
+                          
+                          // Compact room buttons
+                          _buildCompactLocationButton(
+                            context,
+                            'The Study',
+                            'Lord William\'s office',
+                            Icons.book,
+                            Colors.red[700]!,
+                            gameState.locationVisited[1],
+                            _getLocationEvidenceCount(gameState, 1),
+                            screenWidth,
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const StudyScreen()),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.008),
+                          _buildCompactLocationButton(
+                            context,
+                            'The Kitchen',
+                            'Where tea was prepared',
+                            Icons.kitchen,
+                            Colors.brown[700]!,
+                            gameState.locationVisited[2],
+                            _getLocationEvidenceCount(gameState, 2),
+                            screenWidth,
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const KitchenScreen()),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.008),
+                          _buildCompactLocationButton(
+                            context,
+                            'The Conservatory',
+                            'Lady Victoria\'s retreat',
+                            Icons.local_florist,
+                            Colors.green[700]!,
+                            gameState.locationVisited[3],
+                            0,
+                            screenWidth,
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ConservatoryScreen()),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.008),
+                          _buildCompactLocationButton(
+                            context,
+                            'Smoking Room',
+                            'James\'s sanctuary',
+                            Icons.smoking_rooms,
+                            Colors.orange[700]!,
+                            gameState.locationVisited[4],
+                            0,
+                            screenWidth,
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SmokingRoomScreen()),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.008),
+                          _buildCompactLocationButton(
+                            context,
+                            'Guest Room',
+                            'Dr. Harlow\'s office',
+                            Icons.medical_services,
+                            Colors.cyan[700]!,
+                            gameState.locationVisited[5],
+                            0,
+                            screenWidth,
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const GuestRoomScreen()),
+                            ),
+                          ),
+                          
+                          SizedBox(height: screenHeight * 0.025),
+                          
+                          // Conclusion button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ConclusionPhase()),
+                              ),
+                              icon: Icon(Icons.gavel, size: screenWidth * 0.045),
+                              label: Text(
+                                'CONCLUDE INVESTIGATION',
+                                style: TextStyle(fontSize: screenWidth * 0.037),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple[700],
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                                textStyle: TextStyle(
+                                  fontSize: screenWidth * 0.037,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          )),
+                          ),
+                          
+                          // Extra bottom padding for safe scrolling
+                          SizedBox(height: screenHeight * 0.02),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Locations - Compact vertical list
-                  Column(
-                    children: [
-                      _buildCompactLocationButton(
-                        context,
-                        'The Study',
-                        'Lord William\'s private office',
-                        Icons.book,
-                        Colors.red[700]!,
-                        gameState.locationVisited[1],
-                        _getLocationEvidenceCount(gameState, 1),
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const StudyScreen()),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCompactLocationButton(
-                        context,
-                        'The Kitchen',
-                        'Where the fatal tea was prepared',
-                        Icons.kitchen,
-                        Colors.brown[700]!,
-                        gameState.locationVisited[2],
-                        _getLocationEvidenceCount(gameState, 2),
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const KitchenScreen()),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCompactLocationButton(
-                        context,
-                        'The Conservatory',
-                        'Lady Victoria\'s retreat',
-                        Icons.local_florist,
-                        Colors.green[700]!,
-                        gameState.locationVisited[3],
-                        0,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ConservatoryScreen()),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCompactLocationButton(
-                        context,
-                        'Smoking Room',
-                        'James\'s preferred sanctuary',
-                        Icons.smoking_rooms,
-                        Colors.orange[700]!,
-                        gameState.locationVisited[4],
-                        0,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SmokingRoomScreen()),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCompactLocationButton(
-                        context,
-                        'Guest Room',
-                        'Dr. Harlow\'s temporary office',
-                        Icons.medical_services,
-                        Colors.cyan[700]!,
-                        gameState.locationVisited[5],
-                        0,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const GuestRoomScreen()),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const Spacer(),
-                  
-                  // Action buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ConclusionPhase()),
-                          ),
-                          icon: const Icon(Icons.gavel),
-                          label: const Text('CONCLUDE INVESTIGATION'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple[700],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -278,13 +283,17 @@ class ManorEntranceHall extends StatelessWidget {
     Color color,
     bool visited,
     int evidenceCount,
+    double screenWidth,
     VoidCallback onTap,
   ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.03,
+          vertical: screenWidth * 0.025,
+        ),
         decoration: BoxDecoration(
           color: color.withOpacity(0.15),
           borderRadius: BorderRadius.circular(8),
@@ -299,7 +308,7 @@ class ManorEntranceHall extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: 24,
+                  size: screenWidth * 0.055,
                   color: color,
                 ),
                 if (visited)
@@ -312,32 +321,32 @@ class ManorEntranceHall extends StatelessWidget {
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check,
-                        size: 8,
+                        size: screenWidth * 0.02,
                         color: Colors.white,
                       ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: screenWidth * 0.025),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.038,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   Text(
                     description,
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.028,
                       color: Colors.white70,
                     ),
                   ),
@@ -346,24 +355,27 @@ class ManorEntranceHall extends StatelessWidget {
             ),
             if (evidenceCount > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.015,
+                  vertical: screenWidth * 0.008,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.blue,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '$evidenceCount Evidence',
-                  style: const TextStyle(
-                    fontSize: 10,
+                  '$evidenceCount',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.025,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
               ),
-            const SizedBox(width: 8),
+            SizedBox(width: screenWidth * 0.015),
             Icon(
               Icons.arrow_forward_ios,
-              size: 16,
+              size: screenWidth * 0.035,
               color: Colors.white54,
             ),
           ],

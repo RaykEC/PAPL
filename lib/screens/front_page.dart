@@ -198,7 +198,8 @@ class _FrontPageState extends State<FrontPage> {
                         onChanged: (value) {
                           setState(() {
                             audioManager.toggleMusic();
-                            if (value && !_hasAttemptedToPlayAudio) {
+                            // Handle restarting music when turned back on
+                            if (value) {  // ← Removed the _hasAttemptedToPlayAudio condition
                               audioManager.playDarkAmbience();
                             }
                           });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/game_state.dart';
 import '../../widgets/game_top_bar.dart';
+import '../../widgets/character_interview_widget.dart';
 
 class GuestRoomScreen extends StatefulWidget {
   const GuestRoomScreen({super.key});
@@ -11,7 +12,6 @@ class GuestRoomScreen extends StatefulWidget {
 }
 
 class _GuestRoomScreenState extends State<GuestRoomScreen> {
-  bool _interviewedDrHarlow = false;
   
   @override
   void initState() {
@@ -23,6 +23,8 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+    final hasInterviewedDrHarlow = gameState.characterInterviewed['Dr. Harlow'] ?? false;
     
     return Scaffold(
       body: Stack(
@@ -139,7 +141,7 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
                             ],
                           ),
                         ),
-                        if (_interviewedDrHarlow)
+                        if (hasInterviewedDrHarlow)
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
@@ -174,14 +176,18 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Interview Dr. Harlow option
+                          // Interview Dr. Harlow option - Now always available
                           _buildInvestigationOption(
-                            'Interview Dr. Thomas Harlow',
-                            'Question the family physician about Lord William\'s health',
-                            Icons.chat,
+                            hasInterviewedDrHarlow 
+                                ? 'Re-interview Dr. Thomas Harlow'
+                                : 'Interview Dr. Thomas Harlow',
+                            hasInterviewedDrHarlow
+                                ? 'Review previous responses or ask additional questions'
+                                : 'Question the family physician about Lord William\'s health',
+                            hasInterviewedDrHarlow ? Icons.refresh : Icons.chat,
                             Colors.cyan[700]!,
-                            _interviewedDrHarlow,
-                            !_interviewedDrHarlow,
+                            hasInterviewedDrHarlow,
+                            true, // Always enabled now
                             () => _interviewDrHarlow(),
                           ),
                         ],
@@ -292,7 +298,7 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    completed ? '$description (Completed)' : description,
+                    description,
                     style: TextStyle(
                       fontSize: 14,
                       color: enabled || completed ? Colors.white70 : Colors.grey.withOpacity(0.7),
@@ -301,12 +307,11 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
                 ],
               ),
             ),
-            if (enabled && !completed)
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white54,
-                size: 16,
-              ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white54,
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -314,166 +319,18 @@ class _GuestRoomScreenState extends State<GuestRoomScreen> {
   }
   
   void _interviewDrHarlow() {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    
-    setState(() {
-      _interviewedDrHarlow = true;
-    });
-    
-    gameState.interviewCharacter('Dr. Harlow');
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.blueGrey[900],
-          title: Row(
-            children: [
-              Icon(Icons.medical_services, color: Colors.cyan[300], size: 24),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Dr. Thomas Harlow Interview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.cyan[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.cyan[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    'Dr. Harlow sets aside his papers as you enter, offering a professional but solemn greeting.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 1: Heart condition and medication
-                const Text(
-                  'About Lord William\'s heart condition and medication:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '"William suffered from arrhythmia—irregular heartbeat—that occasionally developed into more serious episodes. The medication he took daily helps regulate his heart\'s rhythm. I\'ve treated him for over a decade, and while his condition was chronic, it was well-managed with proper care. The medication is digitalis, derived from foxglove. Quite effective, but very particular in its interactions. There are several substances that should never be combined with it, which I\'ve always made clear to William."',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Question 2: Research funding (conditional)
-                if (gameState.evidenceList[3] || gameState.evidenceList[4]) ...[
-                  const Text(
-                    'About the research funding that was cut:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red[900]!.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red[300]!.withOpacity(0.5)),
-                    ),
-                    child: const Text(
-                      '"Yes, unfortunately. William informed me yesterday evening that he could no longer support my research into cardiac-affecting botanical compounds. Years of work, potentially lost due to his financial missteps." *He adjusts his glasses and quickly composes himself* "A devastating setback professionally, but I understood his position. These things happen in research."',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
-                // Question 3: Chamomile tea
-                const Text(
-                  'About the chamomile tea William was drinking:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.yellow[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.yellow[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    '"Chamomile? I recommended it to help with his stress and insomnia. Perfectly safe, normally. Though, now that you mention it, certain varieties of chamomile can have mild interactions with heart medications if consumed in large quantities. Nothing fatal on its own, certainly." *His clinical tone remains steady* "Was he drinking chamomile last night? Interesting."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.cyan[900]!.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.cyan[300]!.withOpacity(0.5)),
-                  ),
-                  child: const Text(
-                    '"I\'m at your disposal, Detective. William was not just my patron but my friend. I want to see this resolved as much as anyone."',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Thank you, Doctor',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
+        return CharacterInterviewWidget(
+          characterKey: 'Dr. Harlow',
+          characterDisplayName: 'Dr. Thomas Harlow',
+          characterImagePath: 'assets/images/characters/dr_harlow.jpg',
+          characterIntro: 'Dr. Harlow sets aside his papers as you enter, offering a professional but solemn greeting.',
+          onInterviewComplete: () {
+            setState(() {}); // Refresh the UI
+          },
         );
       },
     );

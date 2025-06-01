@@ -43,7 +43,7 @@ class InterviewQuestion {
     return true;
   }
   
-  // Get requirement string for display
+
   String getRequirementString(GameState gameState) {
     if (requiresEvidence == 'will' && !gameState.evidenceList[3]) {
       return " (Need Will evidence)";
@@ -62,7 +62,7 @@ class InterviewQuestion {
     return "";
   }
   
-  // Get requirement message for snackbar
+
   String getRequirementMessage() {
     if (requiresEvidence == 'will') {
       return 'You need to find the Modified Will first.';
@@ -77,7 +77,7 @@ class InterviewQuestion {
   }
 }
 
-// Model for each character's interview data
+
 class CharacterInterviews {
   final String characterName;
   final List<InterviewQuestion> questions;
