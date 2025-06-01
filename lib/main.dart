@@ -6,15 +6,23 @@ import 'services/audio_manager.dart';
 import 'services/interview_service.dart';
 
 void main() async {
-  // Ensure Flutter is initialized    
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize audio manager
   final audioManager = AudioManager();
   await audioManager.initialize();
   
-  // Initialize interview service and load CSV data
+
   final interviewService = InterviewService();
+  
+  try {
+    await interviewService.loadInterviews();
+    print(' CSV files loaded successfully');
+  } catch (e) { 
+    print(' Failed to load CSV files: $e');
+
+  }
     
   runApp(
     MultiProvider(
